@@ -1,15 +1,21 @@
 {
-  "private": true,
-  "name": "",
+  "name": "limit-concurrency-decorator",
   "version": "0.0.0",
   "license": "ISC",
-  "description": "",
-  "keywords": [],
-  "homepage": "",
-  "bugs": "",
+  "description": "Decorator to limit concurrency of async functions",
+  "keywords": [
+    "async",
+    "concurrency",
+    "decorator",
+    "parallelism",
+    "promise",
+    "limit"
+  ],
+  "homepage": "https://github.com/JsCommunity/limit-concurrency-decorator",
+  "bugs": "https://github.com/JsCommunity/limit-concurrency-decorator/issues",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/JsCommunity/limit-concurrency-decorator.git"
   },
   "author": {
     "name": "Julien Fontanet",
