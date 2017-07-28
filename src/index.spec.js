@@ -1,12 +1,12 @@
 /* eslint-env jest */
 
-import limitAsync from './'
+import limitConcurrency from './'
 
-describe('@limitAsync()', () => {
+describe('@limitConcurrency()', () => {
   it('limits the concurrency', async () => {
     let i = 0
     const context = {}
-    const fn = limitAsync(2)(function (value) {
+    const fn = limitConcurrency(2)(function (value) {
       ++i
 
       // test context passing

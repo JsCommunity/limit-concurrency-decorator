@@ -29,7 +29,7 @@ Queue.prototype.pop = function () {
   return s2.pop()
 }
 
-const limitAsync = concurrency => {
+const limitConcurrency = concurrency => {
   const queue = []
   const execNext = () => {
     const d = queue.shift()
@@ -58,7 +58,7 @@ const limitAsync = concurrency => {
   }
 }
 export default (...args) => {
-  const wrap = limitAsync(...args)
+  const wrap = limitConcurrency(...args)
   return (target, key, descriptor) =>
     key === undefined
       ? wrap(target)
