@@ -30,9 +30,9 @@ Queue.prototype.pop = function () {
 }
 
 const limitConcurrency = concurrency => {
-  const queue = []
+  const queue = new Queue()
   const execNext = () => {
-    const d = queue.shift()
+    const d = queue.pop()
     if (d === undefined) {
       ++concurrency
     } else {
