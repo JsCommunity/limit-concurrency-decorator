@@ -7,7 +7,10 @@ function Deferred (fn, thisArg, args, resolve, reject) {
 }
 
 // based on implementation in https://github.com/ForbesLindesay/throat
-function Queue () {
+function Queue (concurrency) {
+  // not related to the queue implementation but used in this lib
+  this.concurrency = concurrency
+
   this._s1 = [] // stack to push to
   this._s2 = [] // stack to pop from
 }
@@ -29,49 +32,86 @@ Queue.prototype.pop = function () {
   return s2.pop()
 }
 
-const limitConcurrency = concurrency => {
-  const queue = new Queue()
-  const execNext = () => {
-    const d = queue.pop()
-    if (d === undefined) {
-      ++concurrency
-    } else {
-      try {
-        d.resolve(d.fn.apply(d.thisArg, d.args))
-      } catch (error) {
-        d.reject(error)
-      }
+const execNext = queue => {
+  const d = queue.pop()
+  if (d === undefined) {
+    ++queue.concurrency
+  } else {
+    try {
+      d.resolve(d.fn.apply(d.thisArg, d.args))
+    } catch (error) {
+      d.reject(error)
     }
   }
+}
 
+const makeLimiter = getQueue => {
   return fn => function (...args) {
-    const promise = concurrency > 0
+    const queue = getQueue(this)
+    const promise = queue.concurrency > 0
       ? new Promise(resolve => {
-        --concurrency
+        --queue.concurrency
         resolve(fn.apply(this, args))
       })
       : new Promise((resolve, reject) =>
         queue.push(new Deferred(fn, this, args, resolve, reject))
       )
-    promise.then(execNext, execNext)
+    const bound = () => execNext(queue)
+    promise.then(bound, bound)
     return promise
   }
 }
-export default (...args) => {
-  const wrap = limitConcurrency(...args)
-  return (target, key, descriptor) =>
-    key === undefined
-      ? wrap(target)
-      : {
-        ...descriptor,
-        configurable: true,
-        get () {
-          const value = wrap(descriptor.value)
-          Object.defineProperty(this, key, { ...descriptor, value })
-          return value
-        },
-        set (value) {
-          Object.defineProperty(this, key, { ...descriptor, value })
-        }
+
+// create a function limiter where the concurrency is shared between
+// all functions
+const limitFunction = concurrency => {
+  const queue = new Queue(concurrency)
+  return makeLimiter(() => queue)
+}
+
+// create a method limiter where the concurrency is shared between all
+// methods but locally to the instance
+export const limitMethod = concurrency => {
+  const queues = new WeakMap()
+  return makeLimiter(obj => {
+    let queue = queues.get(obj)
+    if (queue === undefined) {
+      queue = new Queue(concurrency)
+      queues.set(obj, queue)
+    }
+    return queue
+  })
+}
+
+export default concurrency => {
+  let method = false
+  let wrap
+  return (target, key, descriptor) => {
+    if (key === undefined) {
+      if (wrap === undefined) {
+        wrap = limitFunction(concurrency)
+      } else if (method) {
+        throw new Error('the same decorator cannot be used between function and method')
       }
+      return wrap(target)
+    }
+
+    if (wrap === undefined) {
+      method = true
+      wrap = limitMethod(concurrency)
+    } else if (!method) {
+      throw new Error('the same decorator cannot be used between function and method')
+    }
+
+    if ('value' in descriptor) {
+      descriptor.value = wrap(descriptor.value)
+    } else {
+      const { get } = descriptor
+      descriptor.get = function () {
+        return wrap(get.call(this))
+      }
+    }
+
+    return descriptor
+  }
 }
