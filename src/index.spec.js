@@ -18,7 +18,7 @@ describe('@limitConcurrency()', () => {
     const results = Promise.all([
       fn.call(context, 'foo'),
       fn.call(context, 'bar'),
-      fn.call(context, 'baz')
+      fn.call(context, 'baz'),
     ])
 
     // first 2 calls are run in parallel
@@ -48,7 +48,7 @@ describe('@limitConcurrency()', () => {
     const results = Promise.all([
       f1('foo'),
       f2('bar'),
-      f1('baz')
+      f1('baz'),
     ])
 
     // first 2 calls are run in parallel
@@ -90,7 +90,7 @@ describe('@limitConcurrency()', () => {
 
       i2.method('foo', i2),
       i2.method('bar', i2),
-      i2.method('baz', i2)
+      i2.method('baz', i2),
     ])
 
     // first 2 calls are run in parallel
@@ -137,7 +137,7 @@ describe('@limitConcurrency()', () => {
 
       i2.method1('foo'),
       i2.method2('bar'),
-      i2.method1('baz')
+      i2.method1('baz'),
     ])
 
     // first 2 calls are run in parallel
