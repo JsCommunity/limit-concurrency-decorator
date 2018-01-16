@@ -76,6 +76,18 @@ class HttpClient {
 }
 ```
 
+With `FAIL_ON_QUEUE` you can fail early instead of waiting:
+
+```js
+import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
+
+try {
+  await httpRequestLimited(FAIL_ON_QUEUE, 'http://example2.net')
+} catch (error) {
+  error.message // 'no available place in queue'
+}
+```
+
 ## Development
 
 ```
