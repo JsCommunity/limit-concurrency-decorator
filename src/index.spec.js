@@ -1,6 +1,15 @@
 /* eslint-env jest */
 
-import limitConcurrency from './'
+import limitConcurrency, { FAIL_ON_QUEUE } from './'
+
+// expect(promise).rejects.toThrow does not work with Jest 21
+const makeSyncWrapper = promise =>
+  promise.then(
+    value => () => value,
+    reason => () => {
+      throw reason
+    }
+  )
 
 describe('@limitConcurrency()', () => {
   it('limits the concurrency of a function', async () => {
@@ -166,5 +175,18 @@ describe('@limitConcurrency()', () => {
         method () {}
       }
     }).toThrow()
+  })
+})
+
+describe('FAIL_ON_QUEUE', () => {
+  it('makes the call fail instead of queue', async () => {
+    const fn = limitConcurrency(2)(() => {})
+
+    fn()
+    fn()
+
+    expect(await makeSyncWrapper(fn(FAIL_ON_QUEUE))).toThrow(
+      'no available place in queue'
+    )
   })
 })
