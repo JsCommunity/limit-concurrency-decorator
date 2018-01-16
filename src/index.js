@@ -45,10 +45,25 @@ const execNext = queue => {
   }
 }
 
+export const FAIL_ON_QUEUE = {}
+
 const makeLimiter = getQueue => {
-  return fn => function (...args) {
+  return fn => function () {
     const queue = getQueue(this)
-    const promise = queue.concurrency > 0
+    const canRun = queue.concurrency > 0
+    let argStart = 0
+    const { length } = arguments
+    if (argStart < length && arguments[argStart] === FAIL_ON_QUEUE) {
+      ++argStart
+      if (!canRun) {
+        return Promise.reject(new Error('no available place in queue'))
+      }
+    }
+    const args = new Array(length - argStart)
+    for (let i = argStart; i < length; ++i) {
+      args[i - argStart] = arguments[i]
+    }
+    const promise = canRun
       ? new Promise(resolve => {
         --queue.concurrency
         resolve(fn.apply(this, args))
