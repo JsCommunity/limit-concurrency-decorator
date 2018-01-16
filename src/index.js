@@ -45,7 +45,11 @@ const execNext = queue => {
   }
 }
 
-export const FAIL_ON_QUEUE = {}
+const getSymbol = typeof Symbol === 'function'
+  ? key => Symbol.for('limit-concurrency-decorator/' + key)
+  : key => '@@limit-concurrency-decorator/' + key
+
+export const FAIL_ON_QUEUE = getSymbol('FAIL_ON_QUEUE')
 
 const makeLimiter = getQueue => {
   return fn => function () {
