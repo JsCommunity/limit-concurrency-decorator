@@ -10,9 +10,23 @@ function Deferred (fn, thisArg, args, resolve, reject) {
 function Queue (concurrency) {
   // not related to the queue implementation but used in this lib
   this.concurrency = concurrency
+  this.next = this.next.bind(this)
 
   this._s1 = [] // stack to push to
   this._s2 = [] // stack to pop from
+}
+
+Queue.prototype.next = function () {
+  const d = this.pop()
+  if (d === undefined) {
+    ++this.concurrency
+  } else {
+    try {
+      d.resolve(d.fn.apply(d.thisArg, d.args))
+    } catch (error) {
+      d.reject(error)
+    }
+  }
 }
 
 Queue.prototype.push = function (value) {
@@ -30,19 +44,6 @@ Queue.prototype.pop = function () {
     s2 = this._s2 = s1.reverse()
   }
   return s2.pop()
-}
-
-const execNext = queue => {
-  const d = queue.pop()
-  if (d === undefined) {
-    ++queue.concurrency
-  } else {
-    try {
-      d.resolve(d.fn.apply(d.thisArg, d.args))
-    } catch (error) {
-      d.reject(error)
-    }
-  }
 }
 
 const getSymbol = typeof Symbol === 'function'
@@ -75,8 +76,7 @@ const makeLimiter = getQueue => {
       : new Promise((resolve, reject) =>
         queue.push(new Deferred(fn, this, args, resolve, reject))
       )
-    const bound = () => execNext(queue)
-    promise.then(bound, bound)
+    promise.then(queue.next, queue.next)
     return promise
   }
 }
