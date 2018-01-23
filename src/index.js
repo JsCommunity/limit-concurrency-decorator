@@ -68,14 +68,22 @@ const makeLimiter = getQueue => {
     for (let i = argStart; i < length; ++i) {
       args[i - argStart] = arguments[i]
     }
-    const promise = canRun
-      ? new Promise(resolve => {
-        --queue.concurrency
-        resolve(fn.apply(this, args))
-      })
-      : new Promise((resolve, reject) =>
+    let promise
+    if (canRun) {
+      --queue.concurrency
+      try {
+        promise = fn.apply(this, args)
+        if (promise == null || typeof promise.then !== 'function') {
+          promise = Promise.resolve(promise)
+        }
+      } catch (error) {
+        promise = Promise.reject(promise)
+      }
+    } else {
+      promise = new Promise((resolve, reject) =>
         queue.push(new Deferred(fn, this, args, resolve, reject))
       )
+    }
     promise.then(queue.next, queue.next)
     return promise
   }
