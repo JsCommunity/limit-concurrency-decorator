@@ -52,7 +52,9 @@ const getSymbol = typeof Symbol === 'function'
 
 export const FAIL_ON_QUEUE = getSymbol('FAIL_ON_QUEUE')
 
-const makeLimiter = getQueue => {
+const defaultTermination = promise => promise
+
+const makeLimiter = (getQueue, termination = defaultTermination) => {
   return fn => function () {
     const queue = getQueue(this)
     const canRun = queue.concurrency > 0
@@ -84,21 +86,22 @@ const makeLimiter = getQueue => {
         queue.push(new Deferred(fn, this, args, resolve, reject))
       )
     }
-    promise.then(queue.next, queue.next)
+    const { next } = queue
+    termination(promise).then(next, next)
     return promise
   }
 }
 
 // create a function limiter where the concurrency is shared between
 // all functions
-const limitFunction = concurrency => {
+const limitFunction = (concurrency, opts) => {
   const queue = new Queue(concurrency)
-  return makeLimiter(() => queue)
+  return makeLimiter(() => queue, opts)
 }
 
 // create a method limiter where the concurrency is shared between all
 // methods but locally to the instance
-export const limitMethod = concurrency => {
+export const limitMethod = (concurrency, opts) => {
   const queues = new WeakMap()
   return makeLimiter(obj => {
     let queue = queues.get(obj)
@@ -107,16 +110,16 @@ export const limitMethod = concurrency => {
       queues.set(obj, queue)
     }
     return queue
-  })
+  }, opts)
 }
 
-export default concurrency => {
+export default (...args) => {
   let method = false
   let wrap
   return (target, key, descriptor) => {
     if (key === undefined) {
       if (wrap === undefined) {
-        wrap = limitFunction(concurrency)
+        wrap = limitFunction(...args)
       } else if (method) {
         throw new Error('the same decorator cannot be used between function and method')
       }
@@ -125,7 +128,7 @@ export default concurrency => {
 
     if (wrap === undefined) {
       method = true
-      wrap = limitMethod(concurrency)
+      wrap = limitMethod(...args)
     } else if (!method) {
       throw new Error('the same decorator cannot be used between function and method')
     }

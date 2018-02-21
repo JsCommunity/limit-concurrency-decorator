@@ -88,6 +88,25 @@ try {
 }
 ```
 
+Custom termination:
+
+```js
+const httpRequestLimited = limit(2, async promise => {
+  const stream = await promise
+  await new Promise(resolve => {
+    stream.on('end', resolve)
+    stream.on('error', reject)
+  })
+})(httpRequest)
+
+// these calls will run in parallel
+httpRequestLimited('http://example.net/')
+httpRequestLimited('http://example2.net/')
+
+// this call will wait for the 2 previous responses to have been read entirely
+httpRequestLimited('http://example3.net/')
+```
+
 ## Development
 
 ```
