@@ -52,7 +52,7 @@ const getSymbol = typeof Symbol === 'function'
 
 export const FAIL_ON_QUEUE = getSymbol('FAIL_ON_QUEUE')
 
-const defaultTermination = (promise, cb) => promise.then(cb, cb)
+const defaultTermination = promise => promise
 
 const makeLimiter = (getQueue, termination = defaultTermination) => {
   return fn => function () {
@@ -86,7 +86,8 @@ const makeLimiter = (getQueue, termination = defaultTermination) => {
         queue.push(new Deferred(fn, this, args, resolve, reject))
       )
     }
-    termination(promise, queue.next)
+    const { next } = queue
+    termination(promise).then(next, next)
     return promise
   }
 }
