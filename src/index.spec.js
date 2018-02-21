@@ -176,6 +176,27 @@ describe('@limitConcurrency()', () => {
       }
     }).toThrow()
   })
+
+  it('supports custom termination', async () => {
+    let terminate
+    const fn = limitConcurrency(1, _ => {
+      const promise = new Promise(resolve => {
+        terminate = () => {
+          resolve()
+          return promise
+        }
+      })
+      return promise
+    })(() => {})
+
+    await fn()
+
+    expect(await makeSyncWrapper(fn(FAIL_ON_QUEUE))).toThrow()
+
+    await terminate()
+
+    await fn(FAIL_ON_QUEUE)
+  })
 })
 
 describe('FAIL_ON_QUEUE', () => {
