@@ -103,7 +103,7 @@ const httpRequestLimited = limit(2, async promise => {
 httpRequestLimited('http://example.net/')
 httpRequestLimited('http://example2.net/')
 
-// this call will wait for the 2 previous response to have been read entirely
+// this call will wait for the 2 previous responses to have been read entirely
 httpRequestLimited('http://example3.net/')
 ```
 
