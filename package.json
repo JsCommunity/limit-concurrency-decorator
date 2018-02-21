@@ -1,6 +1,6 @@
 {
   "name": "limit-concurrency-decorator",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "ISC",
   "description": "Decorator to limit concurrency of async functions",
   "keywords": [
