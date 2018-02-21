@@ -85,6 +85,7 @@ const makeLimiter = (getQueue, termination = defaultTermination) => {
       promise = new Promise((resolve, reject) =>
         queue.push(new Deferred(fn, this, args, resolve, reject))
       )
+    }
     termination(promise, queue.next)
     return promise
   }
