@@ -54,6 +54,8 @@ export const FAIL_ON_QUEUE = getSymbol('FAIL_ON_QUEUE')
 
 const defaultTermination = promise => promise
 
+const { slice } = Array.prototype
+
 const makeLimiter = (getQueue, termination = defaultTermination) => {
   return fn => function () {
     const queue = getQueue(this)
@@ -66,10 +68,7 @@ const makeLimiter = (getQueue, termination = defaultTermination) => {
         return Promise.reject(new Error('no available place in queue'))
       }
     }
-    const args = new Array(length - argStart)
-    for (let i = argStart; i < length; ++i) {
-      args[i - argStart] = arguments[i]
-    }
+    const args = slice.call(arguments, argStart)
     let promise
     if (canRun) {
       --queue.concurrency
