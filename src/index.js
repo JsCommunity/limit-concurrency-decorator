@@ -6,17 +6,7 @@ function Deferred (fn, thisArg, args, resolve, reject) {
   this.thisArg = thisArg
 }
 
-// based on implementation in https://github.com/ForbesLindesay/throat
-function Queue (concurrency) {
-  // not related to the queue implementation but used in this lib
-  this.concurrency = concurrency
-  this.next = this.next.bind(this)
-
-  this._s1 = [] // stack to push to
-  this._s2 = [] // stack to pop from
-}
-
-Queue.prototype.next = function () {
+function next () {
   const d = this.pop()
   if (d === undefined) {
     ++this.concurrency
@@ -27,6 +17,16 @@ Queue.prototype.next = function () {
       d.reject(error)
     }
   }
+}
+
+// based on implementation in https://github.com/ForbesLindesay/throat
+function Queue (concurrency) {
+  // not related to the queue implementation but used in this lib
+  this.concurrency = concurrency
+  this.next = next.bind(this)
+
+  this._s1 = [] // stack to push to
+  this._s2 = [] // stack to pop from
 }
 
 Queue.prototype.push = function (value) {
