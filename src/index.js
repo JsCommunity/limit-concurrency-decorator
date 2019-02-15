@@ -6,10 +6,14 @@ function Deferred(fn, thisArg, args, resolve, reject) {
   this.thisArg = thisArg;
 }
 
+function defaultOnEmpty() {
+  ++this.concurrency;
+}
+
 function next() {
   const d = this.pop();
   if (d === undefined) {
-    ++this.concurrency;
+    this.onEmpty();
   } else {
     try {
       d.resolve(d.fn.apply(d.thisArg, d.args));
@@ -20,10 +24,11 @@ function next() {
 }
 
 // based on implementation in https://github.com/ForbesLindesay/throat
-function Queue(concurrency) {
+function Queue(concurrency, onEmpty) {
   // not related to the queue implementation but used in this lib
   this.concurrency = concurrency;
   this.next = next.bind(this);
+  this.onEmpty = onEmpty !== undefined ? onEmpty : defaultOnEmpty;
 
   this._s1 = []; // stack to push to
   this._s2 = []; // stack to pop from
@@ -60,7 +65,7 @@ const { slice } = Array.prototype;
 const makeLimiter = (getQueue, termination = defaultTermination) => {
   return fn =>
     function() {
-      const queue = getQueue(this);
+      const queue = getQueue(this, arguments);
       const canRun = queue.concurrency > 0;
       let argStart = 0;
       const { length } = arguments;
@@ -99,10 +104,24 @@ const limitFunction = (concurrency, opts) => {
   const queue = new Queue(concurrency);
   return makeLimiter(() => queue, opts);
 };
+const limitFunctionWithKey = keyFunction => (concurrency, opts) => {
+  const queues = new Map();
+  return makeLimiter((thisArg, args) => {
+    const key = keyFunction.apply(thisArg, args);
+    let queue = queues.get(key);
+    if (queue === undefined) {
+      queue = new Queue(concurrency, () => {
+        queues.delete(key);
+      });
+      queues.set(key, queue);
+    }
+    return queue;
+  });
+};
 
 // create a method limiter where the concurrency is shared between all
 // methods but locally to the instance
-export const limitMethod = (concurrency, opts) => {
+const limitMethod = (concurrency, opts) => {
   const queues = new WeakMap();
   return makeLimiter(obj => {
     let queue = queues.get(obj);
@@ -113,14 +132,30 @@ export const limitMethod = (concurrency, opts) => {
     return queue;
   }, opts);
 };
+const limitMethodWithKey = keyFunction => (concurrency, opts) => {
+  const queuesByInstance = new WeakMap();
+  return makeLimiter((thisArg, args) => {
+    let queues = queuesByInstance.get(thisArg);
+    if (queues === undefined) {
+      queues = new Map();
+      queuesByInstance.set(thisArg, queues);
+    }
+    let queue = queuesByInstance.get(thisArg);
+    if (queue === undefined) {
+      queue = new Queue(concurrency);
+      queuesByInstance.set(thisArg, queue);
+    }
+    return queue;
+  });
+};
 
-export default (...args) => {
+const makeDecorator = (decorateFunction, decorateMethod) => (...args) => {
   let method = false;
   let wrap;
   return (target, key, descriptor) => {
     if (key === undefined) {
       if (wrap === undefined) {
-        wrap = limitFunction(...args);
+        wrap = decorateFunction(...args);
       } else if (method) {
         throw new Error(
           "the same decorator cannot be used between function and method"
@@ -131,7 +166,7 @@ export default (...args) => {
 
     if (wrap === undefined) {
       method = true;
-      wrap = limitMethod(...args);
+      wrap = decorateMethod(...args);
     } else if (!method) {
       throw new Error(
         "the same decorator cannot be used between function and method"
@@ -150,3 +185,12 @@ export default (...args) => {
     return descriptor;
   };
 };
+
+const decorator = makeDecorator(limitFunction, limitMethod);
+decorator.withKey = keyFunction =>
+  makeDecorator(
+    limitFunctionWithKey(keyFunction),
+    limitMethodWithKey(keyFunction)
+  );
+
+export { decorator as default };
