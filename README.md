@@ -24,53 +24,53 @@ Installation of the [npm package](https://npmjs.org/package/limit-concurrency-de
 Simply apply the decorator to a method:
 
 ```js
-import limit from 'limit-concurrency-decorator'
+import limit from "limit-concurrency-decorator";
 
 class HttpClient {
   @limit(2)
-  get () {
+  get() {
     // ...
   }
 }
 
-const client = new HttpClient()
+const client = new HttpClient();
 
 // these calls will run in parallel
-client.get('http://example.net/')
-client.get('http://example2.net/')
+client.get("http://example.net/");
+client.get("http://example2.net/");
 
 // this call will wait for the 2 previous to finish
-client.get('http://example3.net/')
+client.get("http://example3.net/");
 ```
 
 Or a simple function as a wrapper:
 
 ```js
-import httpRequest from 'http-request-plus'
+import httpRequest from "http-request-plus";
 
-const httpRequestLimited = limit(2)(httpRequest)
+const httpRequestLimited = limit(2)(httpRequest);
 
 // these calls will run in parallel
-httpRequestLimited('http://example.net/')
-httpRequestLimited('http://example2.net/')
+httpRequestLimited("http://example.net/");
+httpRequestLimited("http://example2.net/");
 
 // this call will wait for the 2 previous to finish
-httpRequestLimited('http://example3.net/')
+httpRequestLimited("http://example3.net/");
 ```
 
 The limit can be shared:
 
 ```js
-const myLimit = limit(2)
+const myLimit = limit(2);
 
 class HttpClient {
   @myLimit
-  post () {
+  post() {
     // ...
   }
 
   @myLimit
-  put () {
+  put() {
     // ...
   }
 }
@@ -79,12 +79,12 @@ class HttpClient {
 With `FAIL_ON_QUEUE` you can fail early instead of waiting:
 
 ```js
-import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
+import { FAIL_ON_QUEUE } from "limit-concurrency-decorator";
 
 try {
-  await httpRequestLimited(FAIL_ON_QUEUE, 'http://example2.net')
+  await httpRequestLimited(FAIL_ON_QUEUE, "http://example2.net");
 } catch (error) {
-  error.message // 'no available place in queue'
+  error.message; // 'no available place in queue'
 }
 ```
 
@@ -92,19 +92,19 @@ Custom termination:
 
 ```js
 const httpRequestLimited = limit(2, async promise => {
-  const stream = await promise
+  const stream = await promise;
   await new Promise(resolve => {
-    stream.on('end', resolve)
-    stream.on('error', reject)
-  })
-})(httpRequest)
+    stream.on("end", resolve);
+    stream.on("error", reject);
+  });
+})(httpRequest);
 
 // these calls will run in parallel
-httpRequestLimited('http://example.net/')
-httpRequestLimited('http://example2.net/')
+httpRequestLimited("http://example.net/");
+httpRequestLimited("http://example2.net/");
 
 // this call will wait for the 2 previous responses to have been read entirely
-httpRequestLimited('http://example3.net/')
+httpRequestLimited("http://example3.net/");
 ```
 
 ## Development
@@ -128,7 +128,7 @@ httpRequestLimited('http://example3.net/')
 
 ## Contributions
 
-Contributions are *very* welcomed, either on the documentation or on
+Contributions are _very_ welcomed, either on the documentation or on
 the code.
 
 You may:
