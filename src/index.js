@@ -66,14 +66,15 @@ const makeLimiter = (getQueue, termination = defaultTermination) => {
       let argStart = 0;
       const { length } = arguments;
       if (argStart < length) {
-        const maybeFlag = arguments[argStart];
+        const maybeFlag = arguments[argStart++];
         if (maybeFlag === BYPASS_QUEUE) {
           canRun = true;
         } else if (maybeFlag === FAIL_ON_QUEUE) {
-          ++argStart;
           if (!canRun) {
             return Promise.reject(new Error("no available place in queue"));
           }
+        } else {
+          --argStart;
         }
       }
       const args = slice.call(arguments, argStart);
