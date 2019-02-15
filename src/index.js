@@ -52,6 +52,7 @@ const getSymbol =
     : key => "@@limit-concurrency-decorator/" + key;
 
 export const FAIL_ON_QUEUE = getSymbol("FAIL_ON_QUEUE");
+export const BYPASS_QUEUE = getSymbol("BYPASS_QUEUE");
 
 const defaultTermination = promise => promise;
 
@@ -61,13 +62,18 @@ const makeLimiter = (getQueue, termination = defaultTermination) => {
   return fn =>
     function() {
       const queue = getQueue(this);
-      const canRun = queue.concurrency > 0;
+      let canRun = queue.concurrency > 0;
       let argStart = 0;
       const { length } = arguments;
-      if (argStart < length && arguments[argStart] === FAIL_ON_QUEUE) {
-        ++argStart;
-        if (!canRun) {
-          return Promise.reject(new Error("no available place in queue"));
+      if (argStart < length) {
+        const maybeFlag = arguments[argStart];
+        if (maybeFlag === BYPASS_QUEUE) {
+          canRun = true;
+        } else if (maybeFlag === FAIL_ON_QUEUE) {
+          ++argStart;
+          if (!canRun) {
+            return Promise.reject(new Error("no available place in queue"));
+          }
         }
       }
       const args = slice.call(arguments, argStart);
