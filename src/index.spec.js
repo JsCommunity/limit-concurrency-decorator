@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import limitConcurrency, { FAIL_ON_QUEUE } from "./";
+import limitConcurrency, { BYPASS_QUEUE, FAIL_ON_QUEUE } from "./";
 
 // expect(promise).rejects.toThrow does not work with Jest 21
 const makeSyncWrapper = promise =>
@@ -193,6 +193,33 @@ describe("@limitConcurrency()", () => {
     await terminate();
 
     await fn(FAIL_ON_QUEUE);
+  });
+});
+
+describe("BYPASS_QUEUE", () => {
+  it("makes the call bypass the limit", async () => {
+    let returnedValue;
+    const fn = limitConcurrency(1)(() => returnedValue);
+
+    // this call never terminates
+    returnedValue = new Promise(() => {});
+    fn();
+
+    // this call passes without waiting
+    returnedValue = undefined;
+    await fn(BYPASS_QUEUE);
+  });
+
+  it("the call counts for the concurrency", async () => {
+    const fn = limitConcurrency(1)(() => new Promise(() => {}));
+
+    // this call never terminates
+    fn(BYPASS_QUEUE);
+
+    // the second call counts for the concurrency limit
+    expect(await makeSyncWrapper(fn(FAIL_ON_QUEUE))).toThrow(
+      "no available place in queue"
+    );
   });
 });
 
