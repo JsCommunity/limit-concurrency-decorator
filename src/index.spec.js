@@ -205,7 +205,7 @@ describe("BYPASS_QUEUE", () => {
     returnedValue = new Promise(() => {});
     fn();
 
-    // this call pass without waiting
+    // this call passes without waiting
     returnedValue = undefined;
     await fn(BYPASS_QUEUE);
   });
