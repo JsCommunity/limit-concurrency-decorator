@@ -1,4 +1,6 @@
-# limit-concurrency-decorator [![Build Status](https://travis-ci.org/JsCommunity/limit-concurrency-decorator.png?branch=master)](https://travis-ci.org/JsCommunity/limit-concurrency-decorator)
+# limit-concurrency-decorator
+
+[![Package Version](https://badgen.net/npm/v/limit-concurrency-decorator)](https://npmjs.org/package/limit-concurrency-decorator) [![Build Status](https://travis-ci.org/JsCommunity/limit-concurrency-decorator.png?branch=master)](https://travis-ci.org/JsCommunity/limit-concurrency-decorator) [![PackagePhobia](https://badgen.net/packagephobia/install/limit-concurrency-decorator)](https://packagephobia.now.sh/result?p=limit-concurrency-decorator) [![Latest Commit](https://badgen.net/github/last-commit/JsCommunity/limit-concurrency-decorator)](https://github.com/JsCommunity/limit-concurrency-decorator/commits/master)
 
 > Decorator to limit concurrency of async functions
 
