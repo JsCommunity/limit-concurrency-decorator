@@ -41,7 +41,7 @@ const client = new HttpClient();
 client.get("http://example.net/");
 client.get("http://example2.net/");
 
-// this call will wait for the 2 previous to finish
+// this call will wait for one of the 2 previous to finish
 client.get("http://example3.net/");
 ```
 
@@ -56,7 +56,7 @@ const httpRequestLimited = limit(2)(httpRequest);
 httpRequestLimited("http://example.net/");
 httpRequestLimited("http://example2.net/");
 
-// this call will wait for the 2 previous to finish
+// this call will wait for one of the 2 previous to finish
 httpRequestLimited("http://example3.net/");
 ```
 
@@ -105,7 +105,7 @@ const httpRequestLimited = limit(2, async promise => {
 httpRequestLimited("http://example.net/");
 httpRequestLimited("http://example2.net/");
 
-// this call will wait for the 2 previous responses to have been read entirely
+// this call will wait for one of the 2 previous responses to have been read entirely
 httpRequestLimited("http://example3.net/");
 ```
 
