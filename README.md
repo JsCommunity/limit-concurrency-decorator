@@ -26,10 +26,10 @@ Installation of the [npm package](https://npmjs.org/package/limit-concurrency-de
 Simply apply the decorator to a method:
 
 ```js
-import limit from "limit-concurrency-decorator";
+import { limitConcurrency } from "limit-concurrency-decorator";
 
 class HttpClient {
-  @limit(2)
+  @limitConcurrency(2)
   get() {
     // ...
   }
@@ -50,7 +50,7 @@ Or a simple function as a wrapper:
 ```js
 import httpRequest from "http-request-plus";
 
-const httpRequestLimited = limit(2)(httpRequest);
+const httpRequestLimited = limitConcurrency(2)(httpRequest);
 
 // these calls will run in parallel
 httpRequestLimited("http://example.net/");
@@ -63,7 +63,7 @@ httpRequestLimited("http://example3.net/");
 The limit can be shared:
 
 ```js
-const myLimit = limit(2);
+const myLimit = limitConcurrency(2);
 
 class HttpClient {
   @myLimit
@@ -93,7 +93,7 @@ try {
 Custom termination:
 
 ```js
-const httpRequestLimited = limit(2, async promise => {
+const httpRequestLimited = limitConcurrency(2, async promise => {
   const stream = await promise;
   await new Promise(resolve => {
     stream.on("end", resolve);

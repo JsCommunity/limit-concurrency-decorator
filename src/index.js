@@ -121,7 +121,7 @@ export const limitMethod = (concurrency, opts) => {
   }, opts);
 };
 
-export default (...args) => {
+export const limitConcurrency = (...args) => {
   let method = false;
   let wrap;
   return (target, key, descriptor) => {

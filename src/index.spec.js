@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import limitConcurrency, { BYPASS_QUEUE, FAIL_ON_QUEUE } from "./";
+import { BYPASS_QUEUE, FAIL_ON_QUEUE, limitConcurrency } from "./";
 
 // expect(promise).rejects.toThrow does not work with Jest 21
 const makeSyncWrapper = promise =>
