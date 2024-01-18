@@ -87,7 +87,7 @@ const makeLimiter = (getQueue, termination = defaultTermination) => {
             promise = Promise.resolve(promise);
           }
         } catch (error) {
-          promise = Promise.reject(promise);
+          promise = Promise.reject(error);
         }
       } else {
         promise = new Promise((resolve, reject) =>
@@ -100,13 +100,13 @@ const makeLimiter = (getQueue, termination = defaultTermination) => {
     };
 };
 
-const identity = fn => fn
+const identity = fn => fn;
 
 // create a function limiter where the concurrency is shared between
 // all functions
 const limitFunction = (concurrency, opts) => {
   if (concurrency === 0 || concurrency === Infinity) {
-    return identity
+    return identity;
   }
 
   const queue = new Queue(concurrency);
@@ -117,7 +117,7 @@ const limitFunction = (concurrency, opts) => {
 // methods but locally to the instance
 export const limitMethod = (concurrency, opts) => {
   if (concurrency === 0 || concurrency === Infinity) {
-    return identity
+    return identity;
   }
 
   const queues = new WeakMap();

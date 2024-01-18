@@ -41,6 +41,15 @@ describe("@limitConcurrency()", () => {
     expect(await results).toEqual(["foo", "bar", "baz"]);
   });
 
+  it("properly handle synchronous exception", async () => {
+    const error = new Error();
+    const fn = limitConcurrency(2)(function() {
+      throw error;
+    });
+
+    expect(await makeSyncWrapper(fn())).toThrow(error);
+  });
+
   it("can share the limit between multiple functions", async () => {
     const limit = limitConcurrency(2);
     const f1 = limit(value => {
