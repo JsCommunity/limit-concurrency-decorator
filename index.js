@@ -1,3 +1,5 @@
+"use strict";
+
 function Deferred(fn, thisArg, args, resolve, reject) {
   this.args = args;
   this.fn = fn;
@@ -29,11 +31,11 @@ function Queue(concurrency) {
   this._s2 = []; // stack to pop from
 }
 
-Queue.prototype.push = function(value) {
+Queue.prototype.push = function (value) {
   this._s1.push(value);
 };
 
-Queue.prototype.pop = function() {
+Queue.prototype.pop = function () {
   let s2 = this._s2;
   if (s2.length === 0) {
     const s1 = this._s1;
@@ -48,13 +50,15 @@ Queue.prototype.pop = function() {
 
 const getSymbol =
   typeof Symbol === "function"
-    ? key => Symbol.for("limit-concurrency-decorator/" + key)
-    : key => "@@limit-concurrency-decorator/" + key;
+    ? (key) => Symbol.for("limit-concurrency-decorator/" + key)
+    : (key) => "@@limit-concurrency-decorator/" + key;
 
-export const FAIL_ON_QUEUE = getSymbol("FAIL_ON_QUEUE");
-export const BYPASS_QUEUE = getSymbol("BYPASS_QUEUE");
+const FAIL_ON_QUEUE = getSymbol("FAIL_ON_QUEUE");
+exports.FAIL_ON_QUEUE = FAIL_ON_QUEUE;
+const BYPASS_QUEUE = getSymbol("BYPASS_QUEUE");
+exports.BYPASS_QUEUE = BYPASS_QUEUE;
 
-const defaultTermination = promise => promise;
+const defaultTermination = (promise) => promise;
 
 const { slice } = Array.prototype;
 
@@ -68,7 +72,7 @@ function callWrapper(fn) {
 
 const makeLimiter = (getQueue, termination = defaultTermination) => {
   return (fn = callWrapper) =>
-    function() {
+    function () {
       const queue = getQueue(this);
       let canRun = queue.concurrency > 0;
       let argStart = 0;
@@ -108,7 +112,7 @@ const makeLimiter = (getQueue, termination = defaultTermination) => {
     };
 };
 
-const identity = fn => fn;
+const identity = (fn) => fn;
 
 // create a function limiter where the concurrency is shared between
 // all functions
@@ -123,13 +127,13 @@ const limitFunction = (concurrency, opts) => {
 
 // create a method limiter where the concurrency is shared between all
 // methods but locally to the instance
-export const limitMethod = (concurrency, opts) => {
+const limitMethod = (concurrency, opts) => {
   if (concurrency === 0 || concurrency === Infinity) {
     return identity;
   }
 
   const queues = new WeakMap();
-  return makeLimiter(obj => {
+  return makeLimiter((obj) => {
     let queue = queues.get(obj);
     if (queue === undefined) {
       queue = new Queue(concurrency);
@@ -138,8 +142,9 @@ export const limitMethod = (concurrency, opts) => {
     return queue;
   }, opts);
 };
+exports.limitMethod = limitMethod;
 
-export const limitConcurrency = (...args) => {
+exports.limitConcurrency = (...args) => {
   let method = false;
   let wrap;
   return (target, key, descriptor) => {
@@ -167,7 +172,7 @@ export const limitConcurrency = (...args) => {
       descriptor.value = wrap(descriptor.value);
     } else {
       const { get } = descriptor;
-      descriptor.get = function() {
+      descriptor.get = function () {
         return wrap(get.call(this));
       };
     }

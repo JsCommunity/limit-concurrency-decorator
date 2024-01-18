@@ -106,9 +106,9 @@ try {
 Custom termination:
 
 ```js
-const httpRequestLimited = limitConcurrency(2, async promise => {
+const httpRequestLimited = limitConcurrency(2, async (promise) => {
   const stream = await promise;
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     stream.on("end", resolve);
     stream.on("error", reject);
   });
