@@ -58,8 +58,16 @@ const defaultTermination = promise => promise;
 
 const { slice } = Array.prototype;
 
+function callWrapper(fn) {
+  if (typeof fn !== "function") {
+    fn = this[fn];
+  }
+
+  return fn.apply(this, slice.call(arguments, 1));
+}
+
 const makeLimiter = (getQueue, termination = defaultTermination) => {
-  return fn =>
+  return (fn = callWrapper) =>
     function() {
       const queue = getQueue(this);
       let canRun = queue.concurrency > 0;

@@ -60,6 +60,19 @@ httpRequestLimited("http://example2.net/");
 httpRequestLimited("http://example3.net/");
 ```
 
+Or even as a call limiter:
+
+```js
+const limiter = limitConcurrency(2)(/* nothing */);
+
+// these calls will run in parallel
+limiter(asyncFn, param1, ...);
+limiter.call(thisArg, asyncFn, param1, ...);
+
+// this call will wait for one of the 2 previous to finish
+limiter.call(thisArg, methodName, param1, ...)
+```
+
 The limit can be shared:
 
 ```js
